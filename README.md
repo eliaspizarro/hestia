@@ -1,4 +1,4 @@
-# Hestia Updater: DNS Dinámico para HestiaCP y Cloudflare
+# Hestia Updater: DNS Dinámico para Hestia CP y Cloudflare
 
 Aplicación Python diseñada para automatizar la actualización de registros DNS en Cloudflare y la sincronización de la IP del sistema en HestiaCP. Ideal para servidores con direcciones IP dinámicas, como aquellas obtenidas mediante PPPoE.
 
