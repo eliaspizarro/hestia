@@ -1,0 +1,14 @@
+#!/bin/bash
+LOG_FILE_PATH="$(dirname "$0")/../debug_shared.log"
+
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - debug_v-update-sys-ip - $1" >> "$LOG_FILE_PATH"
+}
+
+log_message "Args: [$*]"
+log_message "Comando v-update-sys-ip simulado. IP del sistema supuestamente actualizada."
+
+# Este script, en su versión real, no produce salida a stdout si tiene éxito.
+# Simplemente ejecuta acciones y sale con código 0.
+
+exit 0

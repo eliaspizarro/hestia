@@ -1,0 +1,64 @@
+#!/bin/bash
+LOG_FILE_PATH="$(dirname "$0")/../debug_shared.log"
+SHARED_DATA_PATH="$(dirname "$0")/../debug_api_server/debug_shared_data.json"
+
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - debug_v-list-users - $1" >> "$LOG_FILE_PATH"
+}
+
+log_message "Args: [$*]"
+
+if ! command -v jq &> /dev/null; then
+    log_message "Error: jq command not found."
+    echo "{\"error\": \"jq command not found. Cannot process user list.\"}" >&2
+    exit 1
+fi
+
+if [ ! -f "$SHARED_DATA_PATH" ]; then
+    log_message "Error: Shared data file not found at $SHARED_DATA_PATH"
+    echo "{\"error\": \"Shared data file not found: $SHARED_DATA_PATH\"}" >&2
+    exit 1
+fi
+
+# Leer los nombres de usuario y construir el JSON de salida
+output_json=$(jq -n --argjson users "$(jq '.hestia_user_names' "$SHARED_DATA_PATH")" \
+    '$users | map({
+        key: . ,
+        value: {
+            "NAME": (. | sub("epizarro"; "Elias Pizarro") | sub("testuser"; "Test User ") | sub("admin"; "System Administrator") | sub("([a-z])([0-9])"; "\(.1 | ascii_upcase)\(.2)") ),
+            "PACKAGE": "default",
+            "WEB_TEMPLATE": "default",
+            "BACKEND_TEMPLATE": "default",
+            "PROXY_TEMPLATE": "default",
+            "DNS_TEMPLATE": "default",
+            "WEB_DOMAINS": "unlimited",
+            "WEB_ALIASES": "unlimited",
+            "DNS_DOMAINS": "unlimited",
+            "DNS_RECORDS": "unlimited",
+            "MAIL_DOMAINS": "unlimited",
+            "MAIL_ACCOUNTS": "unlimited",
+            "DATABASES": "unlimited",
+            "CRON_JOBS": "unlimited",
+            "DISK_QUOTA": "unlimited",
+            "BANDWIDTH": "unlimited",
+            "NS": "ns1.example.com,ns2.example.com",
+            "SHELL": "nologin",
+            "BACKUPS": "1",
+            "CONTACT": (. + "@example.com"),
+            "RKEY": ("mock_rkey_" + .),
+            "ROLE": (if . == "admin" then "admin" else "user" end),
+            "SUSPENDED": "no",
+            "IP_OWNED": "1",
+            "DATE": "2024-05-24",
+            "TIME": "12:00:00"
+        }
+    }) | from_entries')
+
+if [ $? -ne 0 ]; then
+    log_message "Error: jq command failed to generate user JSON."
+    echo "{\"error\": \"jq command failed to generate user JSON. Check SHARED_DATA_PATH and jq query.\"}" >&2
+    exit 1
+fi
+
+log_message "Successfully generated user list JSON."
+echo "$output_json"

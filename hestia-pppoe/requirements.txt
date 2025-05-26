@@ -1,0 +1,7 @@
+# Dependencias principales (necesarias para producción)
+python-dotenv==1.1.0
+requests==2.32.3
+
+# Dependencias para empaquetado (solo desarrollo)
+pyinstaller==6.13.0
+shiv==1.0.8

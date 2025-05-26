@@ -1,0 +1,99 @@
+name: Build and Release
+
+on:
+  push:
+    # Se activa cuando se crea un tag que sigue el patrón v* (ej: v1.0.0)
+    tags:
+      - 'v*'
+
+# Configuración de permisos globales
+permissions:
+  contents: write  # Para crear releases y subir assets
+  packages: write  # Para publicar paquetes si es necesario
+  id-token: write  # Para autenticación segura
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    # Usamos una imagen de Ubuntu 22.04 (basada en Debian)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Necesario para obtener el tag actual
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Set up environment
+        shell: bash
+        run: |
+          # Crear directorios necesarios
+          mkdir -p hestia-pppoe/dist/linux
+          
+          # Instalar dependencias del sistema
+          python -m pip install --upgrade pip
+          pip install -r hestia-pppoe/requirements.txt pyinstaller
+
+      - name: Build binary
+        working-directory: ./hestia-pppoe
+        run: |
+          # Dar permisos de ejecución al script de build
+          chmod +x scripts/build.sh
+          # Construir el binario sin incluir .env
+          ./scripts/build.sh --no-env
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          # Obtener la versión del tag (eliminando la 'v' inicial si existe)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          name: "Hestia PPPoE Updater v${{ steps.get_version.outputs.version }}"
+          body: |
+            ## Cambios
+            
+            Consulta el [CHANGELOG.md](CHANGELOG.md) para ver los cambios en esta versión.
+            
+            ## Instalación
+            
+            1. Descarga el binario para tu sistema operativo desde los assets.
+            2. Hazlo ejecutable: `chmod +x hestia-pppoe`
+            3. Configura las variables de entorno en `/etc/hestia-pppoe/.env`
+            4. Configura como hook PPPoE:
+               ```bash
+               sudo mkdir -p /etc/hestia-pppoe
+               # Crea o edita el archivo .env con tus credenciales
+               sudo nano /etc/hestia-pppoe/.env
+               
+               # Instala el binario
+               sudo mv hestia-pppoe /usr/local/bin/
+               sudo chmod +x /usr/local/bin/hestia-pppoe
+               
+               # Configura el hook PPPoE
+               sudo ln -sf /usr/local/bin/hestia-pppoe /etc/ppp/ip-up.d/99-hestia-update
+               
+               # Asegúrate que el hook sea ejecutable
+               sudo chmod +x /etc/ppp/ip-up.d/99-hestia-update
+               ```
+          draft: false
+          prerelease: false
+          files: |
+            hestia-pppoe/dist/linux/hestia-pppoe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

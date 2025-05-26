@@ -1,0 +1,77 @@
+#!/bin/bash
+LOG_FILE_PATH="$(dirname "$0")/../debug_shared.log"
+SHARED_DATA_PATH="$(dirname "$0")/../debug_api_server/debug_shared_data.json"
+
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - debug_v-list-web-domains - $1" >> "$LOG_FILE_PATH"
+}
+
+USERNAME=$1
+log_message "Args: [$*] - Called for user: $USERNAME"
+
+if [ -z "$USERNAME" ]; then
+    log_message "Error: Username not provided."
+    echo "{\"error\": \"Nombre de usuario no proporcionado.\"}" >&2
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    log_message "Error: jq command not found."
+    echo "{\"error\": \"jq command not found. Cannot process web domains.\"}" >&2
+    exit 1
+fi
+
+if [ ! -f "$SHARED_DATA_PATH" ]; then
+    log_message "Error: Shared data file not found at $SHARED_DATA_PATH"
+    echo "{\"error\": \"Shared data file not found: $SHARED_DATA_PATH\"}" >&2
+    exit 1
+fi
+
+PROXY_EXT_VALUE="css,htm,html,js,mjs,json,xml,apng,avif,bmp,cur,gif,ico,jfif,jpg,jpeg,pjp,pjpeg,png,svg,tif,tiff,webp,aac,caf,flac,m4a,midi,mp3,ogg,opus,wav,3gp,av1,avi,m4v,mkv,mov,mpg,mpeg,mp4,mp4v,webm,otf,ttf,woff,woff2,doc,docx,odf,odp,ods,odt,pdf,ppt,pptx,rtf,txt,xls,xlsx,7z,bz2,gz,rar,tar,tgz,zip,apk,appx,bin,dmg,exe,img,iso,jar,msi,webmanifest"
+
+hestia_domain_filter_jq='''$shared_data | fromjson | .hestia_user_web_domains[$user] // [] | map({
+    key: .DOMAIN,
+    value: {
+        "IP": .IP,
+        "IP6": "",
+        "DOCUMENT_ROOT": ("/home/" + $user + "/web/" + .DOMAIN + "/public_html/"),
+        "U_DISK": "1",
+        "U_BANDWIDTH": "0",
+        "TPL": "default",
+        "ALIAS": ("www." + .DOMAIN),
+        "STATS": "",
+        "STATS_USER": "",
+        "SSL": ([$cf_domains[] as $czone | ($czone | type) == "string" and ($czone | length > 0) and (
+            (.DOMAIN | tostring) == ($czone | tostring) or 
+            ((.DOMAIN | tostring) | test("\\.(?:\\Q" + $czone + "\\E)$"))
+        )] | any | if . then "yes" else "no" end),
+        "SSL_HOME": "same",
+        "LETSENCRYPT": ([$cf_domains[] as $czone | ($czone | type) == "string" and ($czone | length > 0) and (
+            (.DOMAIN | tostring) == ($czone | tostring) or 
+            ((.DOMAIN | tostring) | test("\\.(?:\\Q" + $czone + "\\E)$"))
+        )] | any | if . then "yes" else "no" end),
+        "FTP_USER": "",
+        "FTP_PATH": "",
+        "AUTH_USER": "",
+        "BACKEND": "default",
+        "PROXY": "default",
+        "PROXY_EXT": $proxy_ext,
+        "SUSPENDED": "no",
+        "TIME": "12:00:00",
+        "DATE": "2024-05-24"
+    }
+}) | from_entries'''
+
+output_json=$(jq -n --arg user "$USERNAME" --argjson cf_domains "$(jq '.cloudflare_domains' "$SHARED_DATA_PATH")" --arg proxy_ext "$PROXY_EXT_VALUE" --rawfile shared_data "$SHARED_DATA_PATH" "$hestia_domain_filter_jq")
+
+if [ $? -ne 0 ]; then
+    log_message "Error: jq command failed to generate web domains JSON for user $USERNAME. Check SHARED_DATA_PATH and jq query."
+    # Salida de error más detallada para depuración de jq si es posible
+    jq_error_output=$(jq -n --arg user "$USERNAME" --argjson cf_domains "$(jq '.cloudflare_domains' "$SHARED_DATA_PATH")" --arg proxy_ext "$PROXY_EXT_VALUE" --rawfile shared_data "$SHARED_DATA_PATH" "$hestia_domain_filter_jq" 2>&1)
+    log_message "jq error details: $jq_error_output"
+    echo "{\"error\": \"jq command failed for user $USERNAME. See logs.\"}" >&2
+    exit 1
+fi
+
+log_message "Successfully generated web domains JSON for user $USERNAME."
+echo "$output_json"

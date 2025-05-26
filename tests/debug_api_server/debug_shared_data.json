@@ -1,0 +1,55 @@
+{
+  "current_ip_services_ip": "152.172.30.240",
+  "cloudflare_domains": {
+      "binarius.cl": [ 
+          {"name": "binarius.cl", "content": "152.172.27.3"} 
+      ],
+      "gioconda.cl": [
+          {"name": "gioconda.cl"    , "content": "152.172.27.3"},
+          {"name": "www.gioconda.cl", "content": "152.172.27.3"}
+      ],
+      "liqanantai.cl": [
+          {"name": "liqanantai.cl"    , "content": "152.172.27.3"},
+          {"name": "www.liqanantai.cl", "content": "152.172.27.3"}
+      ],
+      "manada.dog": [
+          {"name": "manada.dog"    , "content": "152.172.27.3"},
+          {"name": "www.manada.dog", "content": "152.172.27.3"}
+      ],
+      "pausasaludable.cl": [
+          {"name": "pausasaludable.cl"    , "content": "152.172.27.3"},
+          {"name": "www.pausasaludable.cl", "content": "152.172.27.3"}
+      ],
+      "pizpac.cl": [
+          {"name": "2fa.pizpac.cl"     , "content": "152.172.41.5"  },
+          {"name": "apidev.pizpac.cl"  , "content": "152.172.41.5"  },
+          {"name": "camaras.pizpac.cl" , "content": "152.172.41.5"  },
+          {"name": "finanzas.pizpac.cl", "content": "152.172.41.5"  },
+          {"name": "hestia.pizpac.cl"  , "content": "152.172.30.240"},
+          {"name": "libros.pizpac.cl"  , "content": "152.172.41.5"  },
+          {"name": "mail.pizpac.cl"    , "content": "72.18.214.206" },
+          {"name": "monitor.pizpac.cl" , "content": "152.172.41.5"  },
+          {"name": "recetas.pizpac.cl" , "content": "152.172.41.5"  },
+          {"name": "registry.pizpac.cl", "content": "152.172.41.5"  },
+          {"name": "remoto.pizpac.cl"  , "content": "152.172.41.5"  },
+          {"name": "send.pizpac.cl"    , "content": "152.172.41.5"  },
+          {"name": "vikunja.pizpac.cl" , "content": "152.172.41.5"  }
+      ],
+      "watitas.cl": [
+          {"name": "watitas.cl"    , "content": "152.172.27.3"},
+          {"name": "www.watitas.cl", "content": "152.172.27.3"}
+      ]
+  },
+  "hestia_user_names": ["admin", "epizarro"],
+  "hestia_user_web_domains": {
+      "admin": [ {"DOMAIN": "hestia.pizpac.cl", "IP": "152.172.30.240"} ],
+      "epizarro": [
+          {"DOMAIN": "manada.dog"       , "IP": "152.172.30.240"},
+          {"DOMAIN": "binarius.cl"      , "IP": "152.172.30.240"},
+          {"DOMAIN": "watitas.cl"       , "IP": "152.172.30.240"},
+          {"DOMAIN": "liqanantai.cl"    , "IP": "152.172.30.240"},
+          {"DOMAIN": "gioconda.cl"      , "IP": "152.172.30.240"},
+          {"DOMAIN": "pausasaludable.cl", "IP": "152.172.30.240"}
+      ]
+  }
+}
