@@ -5,6 +5,7 @@
 #
 
 BLACKLISTS=(
+	"https://raw.githubusercontent.com/stamparm/ipsum/master/levels/1.txt"                                   # IPsum is a threat intelligence feed lists of suspicious and/or malicious IP addresses
 	"https://www.projecthoneypot.org/list_of_ips.php?t=d&rss=1"                                              # Project Honey Pot Directory of Dictionary Attacker IPs
 	"https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=1.1.1.1"                                     # TOR Exit Nodes
 	"https://danger.rulez.sk/projects/bruteforceblocker/blist.php"                                           # BruteForceBlocker IP List
